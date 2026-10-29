@@ -11,13 +11,17 @@ FALLAS=0
 
 cd "$DESTINO" || exit 1
 
-while IFS=, read -r NOMBRE IP; do
+while IFS=, read -r NOMBRE IP VERSION; do
     # Saltar líneas vacías y comentarios
     [[ -z "$NOMBRE" || "$NOMBRE" == \#* ]] && continue
-
+        if [ "$VERSION" = "6" ]; then
+        CMD="/export"
+    else
+        CMD="/export show-sensitive"
+    fi
     ARCHIVO="$NOMBRE.rsc"
 
-    if ssh -n -o ConnectTimeout=10 -o BatchMode=yes "$USUARIO@$IP" "/export show-sensitive" \
+    if ssh -n -o ConnectTimeout=10 -o BatchMode=yes "$USUARIO@$IP" "$CMD" \
         | tr -d '\r' | sed '1d' > "$ARCHIVO.tmp" && [ -s "$ARCHIVO.tmp" ]; then
         mv "$ARCHIVO.tmp" "$ARCHIVO"
         git add "$ARCHIVO"
